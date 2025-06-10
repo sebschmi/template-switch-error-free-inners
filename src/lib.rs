@@ -66,12 +66,12 @@ impl MatchTable {
         let reference_rc_character_offsets: Vec<_> = reference_rc
             .char_indices()
             .map(|(index, _)| index)
-            .chain(iter::once(reference_rc.bytes().len()))
+            .chain(iter::once(reference_rc.len()))
             .collect();
         let query_rc_character_offsets: Vec<_> = query_rc
             .char_indices()
             .map(|(index, _)| index)
-            .chain(iter::once(query_rc.bytes().len()))
+            .chain(iter::once(query_rc.len()))
             .collect();
 
         for reference_rc_kmer_index in 0..reference_kmer_count {
