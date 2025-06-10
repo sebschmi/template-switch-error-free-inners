@@ -1,7 +1,10 @@
 [package]
 name = "template-switch-error-free-inners"
+description = "Find error-free template switch inners of minimum length."
+authors = ["Sebastian Schmidt <sebastian.schmidt@helsinki.fi>"]
 version = "0.1.0"
 edition = "2024"
+license = "BSD-2-Clause"
 
 [dependencies]
 compact-genome = "12.3.0"
