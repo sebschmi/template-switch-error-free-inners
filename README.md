@@ -1,3 +1,3 @@
-# Find reverse-complemental self matches
+# Find error-free template switch inners
 
-Computes a table of reverse-complemental self matches of a genome string.
+Computes a table of error-free template switch inners for a pair of genome strings.

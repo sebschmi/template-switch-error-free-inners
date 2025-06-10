@@ -1,6 +1,9 @@
 [package]
-name = "find-rc-self-matches"
+name = "template-switch-error-free-inners"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+compact-genome = "12.3.0"
+suffix = "1.3.0"
+bitvec = "1.0.1"
