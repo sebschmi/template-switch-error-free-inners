@@ -2,6 +2,8 @@
 
 #![warn(missing_docs)]
 
+use std::iter;
+
 use bitvec::vec::BitVec;
 use compact_genome::{
     implementation::vec_sequence::VectorGenome,
@@ -10,12 +12,17 @@ use compact_genome::{
 use log::debug;
 use suffix::SuffixTable;
 
+#[cfg(test)]
+mod tests;
+
 /// A table of all error-free template switch inner entry points for a pair of genome strings.
 pub struct MatchTable {
     reference_reference: BitVec,
     reference_query: BitVec,
     query_reference: BitVec,
     query_query: BitVec,
+    reference_kmer_count: usize,
+    query_kmer_count: usize,
 }
 
 impl MatchTable {
@@ -24,7 +31,7 @@ impl MatchTable {
     /// The inners must have the given minimum length.
     pub fn new<
         AlphabetType: Alphabet,
-        GenomeSubsequence: GenomeSequence<AlphabetType, GenomeSubsequence>,
+        GenomeSubsequence: GenomeSequence<AlphabetType, GenomeSubsequence> + ?Sized,
     >(
         reference: &GenomeSubsequence,
         query: &GenomeSubsequence,
@@ -49,26 +56,65 @@ impl MatchTable {
         let reference_kmer_count = reference.len() - minimum_length + 1;
         let query_kmer_count = query.len() - minimum_length + 1;
 
-        let reference_reference =
+        let mut reference_reference =
             BitVec::repeat(false, reference_kmer_count * reference_kmer_count);
-        let reference_query = BitVec::repeat(false, reference_kmer_count * query_kmer_count);
-        let query_reference = BitVec::repeat(false, query_kmer_count * reference_kmer_count);
-        let query_query = BitVec::repeat(false, query_kmer_count * query_kmer_count);
+        let mut reference_query = BitVec::repeat(false, reference_kmer_count * query_kmer_count);
+        let mut query_reference = BitVec::repeat(false, query_kmer_count * reference_kmer_count);
+        let mut query_query = BitVec::repeat(false, query_kmer_count * query_kmer_count);
 
         debug!("Finding matches");
         let reference_rc_character_offsets: Vec<_> = reference_rc
             .char_indices()
             .map(|(index, _)| index)
+            .chain(iter::once(reference_rc.bytes().len()))
             .collect();
-        let query_rc_character_offsets: Vec<_> =
-            query_rc.char_indices().map(|(index, _)| index).collect();
+        let query_rc_character_offsets: Vec<_> = query_rc
+            .char_indices()
+            .map(|(index, _)| index)
+            .chain(iter::once(query_rc.bytes().len()))
+            .collect();
 
         for reference_rc_kmer_index in 0..reference_kmer_count {
-            todo!();
+            let reference_rc_kmer = &reference_rc[reference_rc_character_offsets
+                [reference_rc_kmer_index]
+                ..reference_rc_character_offsets[reference_rc_kmer_index + minimum_length]];
+
+            for reference_kmer_index in reference_index.positions(reference_rc_kmer) {
+                let reference_kmer_index = usize::try_from(*reference_kmer_index).unwrap();
+                reference_reference.set(
+                    reference_kmer_index * reference_kmer_count + reference_rc_kmer_index,
+                    true,
+                );
+            }
+
+            for query_kmer_index in query_index.positions(reference_rc_kmer) {
+                let query_kmer_index = usize::try_from(*query_kmer_index).unwrap();
+                query_reference.set(
+                    query_kmer_index * reference_kmer_count + reference_rc_kmer_index,
+                    true,
+                );
+            }
         }
 
         for query_rc_kmer_index in 0..query_kmer_count {
-            todo!();
+            let query_rc_kmer = &query_rc[query_rc_character_offsets[query_rc_kmer_index]
+                ..query_rc_character_offsets[query_rc_kmer_index + minimum_length]];
+
+            for reference_kmer_index in reference_index.positions(query_rc_kmer) {
+                let reference_kmer_index = usize::try_from(*reference_kmer_index).unwrap();
+                reference_query.set(
+                    reference_kmer_index * query_kmer_count + query_rc_kmer_index,
+                    true,
+                );
+            }
+
+            for query_kmer_index in query_index.positions(query_rc_kmer) {
+                let query_kmer_index = usize::try_from(*query_kmer_index).unwrap();
+                query_query.set(
+                    query_kmer_index * query_kmer_count + query_rc_kmer_index,
+                    true,
+                );
+            }
         }
 
         Self {
@@ -76,6 +122,48 @@ impl MatchTable {
             reference_query,
             query_reference,
             query_query,
+            reference_kmer_count,
+            query_kmer_count,
         }
+    }
+
+    /// Returns `true` if the reference kmer at `primary_index` matches the kmer in the reverse-complemented reference at `secondary_rc_index`.
+    pub fn has_reference_reference_match(
+        &self,
+        primary_index: usize,
+        secondary_rc_index: usize,
+    ) -> bool {
+        debug_assert!(primary_index < self.reference_kmer_count);
+        debug_assert!(secondary_rc_index < self.reference_kmer_count);
+        self.reference_reference[primary_index * self.reference_kmer_count + secondary_rc_index]
+    }
+
+    /// Returns `true` if the reference kmer at `primary_index` matches the kmer in the reverse-complemented query at `secondary_rc_index`.
+    pub fn has_reference_query_match(
+        &self,
+        primary_index: usize,
+        secondary_rc_index: usize,
+    ) -> bool {
+        debug_assert!(primary_index < self.reference_kmer_count);
+        debug_assert!(secondary_rc_index < self.query_kmer_count);
+        self.reference_query[primary_index * self.query_kmer_count + secondary_rc_index]
+    }
+
+    /// Returns `true` if the query kmer at `primary_index` matches the kmer in the reverse-complemented reference at `secondary_rc_index`.
+    pub fn has_query_reference_match(
+        &self,
+        primary_index: usize,
+        secondary_rc_index: usize,
+    ) -> bool {
+        debug_assert!(primary_index < self.query_kmer_count);
+        debug_assert!(secondary_rc_index < self.reference_kmer_count);
+        self.query_reference[primary_index * self.reference_kmer_count + secondary_rc_index]
+    }
+
+    /// Returns `true` if the query kmer at `primary_index` matches the kmer in the reverse-complemented query at `secondary_rc_index`.
+    pub fn has_query_query_match(&self, primary_index: usize, secondary_rc_index: usize) -> bool {
+        debug_assert!(primary_index < self.query_kmer_count);
+        debug_assert!(secondary_rc_index < self.query_kmer_count);
+        self.query_query[primary_index * self.query_kmer_count + secondary_rc_index]
     }
 }

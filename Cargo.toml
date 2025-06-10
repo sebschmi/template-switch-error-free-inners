@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 compact-genome = "12.3.0"
+traitsequence = "8.1.2"
 suffix = "1.3.0"
 bitvec = "1.0.1"
 log = "0.4.27"

@@ -136,6 +136,7 @@ dependencies = [
  "compact-genome",
  "log",
  "suffix",
+ "traitsequence",
 ]
 
 [[package]]
