@@ -128,6 +128,26 @@ impl MatchTable {
     }
 
     /// Returns `true` if the reference kmer at `primary_index` matches the kmer in the reverse-complemented reference at `secondary_rc_index`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use compact_genome::interface::sequence::{GenomeSequence, OwnedGenomeSequence};
+    /// use compact_genome::implementation::vec_sequence::VectorGenome;
+    /// use compact_genome::implementation::alphabets::dna_alphabet::DnaAlphabet;
+    /// use template_switch_error_free_inners::MatchTable;
+    ///
+    /// let reference = VectorGenome::<DnaAlphabet>::from_slice_u8(b"AGGGGAACCCCAA").unwrap();
+    /// let query = VectorGenome::from_slice_u8(b"AAAAAAAA").unwrap();
+    /// let matches = MatchTable::new(
+    ///     reference.as_genome_subsequence(),
+    ///     query.as_genome_subsequence(),
+    ///     4,
+    /// );
+    ///
+    /// assert!(matches.has_reference_reference_match(1, 2));
+    /// assert!(matches.has_reference_reference_match(7, 8));
+    /// ```
     pub fn has_reference_reference_match(
         &self,
         primary_index: usize,
@@ -139,6 +159,25 @@ impl MatchTable {
     }
 
     /// Returns `true` if the reference kmer at `primary_index` matches the kmer in the reverse-complemented query at `secondary_rc_index`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use compact_genome::interface::sequence::{GenomeSequence, OwnedGenomeSequence};
+    /// use compact_genome::implementation::vec_sequence::VectorGenome;
+    /// use compact_genome::implementation::alphabets::dna_alphabet::DnaAlphabet;
+    /// use template_switch_error_free_inners::MatchTable;
+    ///
+    /// let reference = VectorGenome::<DnaAlphabet>::from_slice_u8(b"AGGGGAAA").unwrap();
+    /// let query = VectorGenome::from_slice_u8(b"ACCCCAA").unwrap();
+    /// let matches = MatchTable::new(
+    ///     reference.as_genome_subsequence(),
+    ///     query.as_genome_subsequence(),
+    ///     4,
+    /// );
+    ///
+    /// assert!(matches.has_reference_query_match(1, 2));
+    /// ```
     pub fn has_reference_query_match(
         &self,
         primary_index: usize,
@@ -150,6 +189,25 @@ impl MatchTable {
     }
 
     /// Returns `true` if the query kmer at `primary_index` matches the kmer in the reverse-complemented reference at `secondary_rc_index`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use compact_genome::interface::sequence::{GenomeSequence, OwnedGenomeSequence};
+    /// use compact_genome::implementation::vec_sequence::VectorGenome;
+    /// use compact_genome::implementation::alphabets::dna_alphabet::DnaAlphabet;
+    /// use template_switch_error_free_inners::MatchTable;
+    ///
+    /// let reference = VectorGenome::<DnaAlphabet>::from_slice_u8(b"AGGGGAAA").unwrap();
+    /// let query = VectorGenome::from_slice_u8(b"ACCCCAA").unwrap();
+    /// let matches = MatchTable::new(
+    ///     reference.as_genome_subsequence(),
+    ///     query.as_genome_subsequence(),
+    ///     4,
+    /// );
+    ///
+    /// assert!(matches.has_query_reference_match(1, 3));
+    /// ```
     pub fn has_query_reference_match(
         &self,
         primary_index: usize,
@@ -161,6 +219,26 @@ impl MatchTable {
     }
 
     /// Returns `true` if the query kmer at `primary_index` matches the kmer in the reverse-complemented query at `secondary_rc_index`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use compact_genome::interface::sequence::{GenomeSequence, OwnedGenomeSequence};
+    /// use compact_genome::implementation::vec_sequence::VectorGenome;
+    /// use compact_genome::implementation::alphabets::dna_alphabet::DnaAlphabet;
+    /// use template_switch_error_free_inners::MatchTable;
+    ///
+    /// let reference = VectorGenome::<DnaAlphabet>::from_slice_u8(b"AAAAAA").unwrap();
+    /// let query = VectorGenome::from_slice_u8(b"AAGGGGACCCCA").unwrap();
+    /// let matches = MatchTable::new(
+    ///     reference.as_genome_subsequence(),
+    ///     query.as_genome_subsequence(),
+    ///     4,
+    /// );
+    ///
+    /// assert!(matches.has_query_query_match(2, 1));
+    /// assert!(matches.has_query_query_match(7, 6));
+    /// ```
     pub fn has_query_query_match(&self, primary_index: usize, secondary_rc_index: usize) -> bool {
         debug_assert!(primary_index < self.query_kmer_count);
         debug_assert!(secondary_rc_index < self.query_kmer_count);
