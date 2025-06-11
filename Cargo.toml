@@ -5,6 +5,7 @@ authors = ["Sebastian Schmidt <sebastian.schmidt@helsinki.fi>"]
 version = "0.1.0"
 edition = "2024"
 license = "BSD-2-Clause"
+repository = "https://github.com/sebschmi/template-switch-error-free-inners"
 
 [dependencies]
 compact-genome = "12.3.0"
