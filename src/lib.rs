@@ -53,8 +53,9 @@ impl MatchTable {
         let query_index = SuffixTable::new(&query);
 
         debug!("Initialising bitvectors");
-        let reference_kmer_count = reference.len() - minimum_length + 1;
-        let query_kmer_count = query.len() - minimum_length + 1;
+        // A sequence shorter than `minimum_length` has no kmers.
+        let reference_kmer_count = (reference.len() + 1).saturating_sub(minimum_length);
+        let query_kmer_count = (query.len() + 1).saturating_sub(minimum_length);
 
         let mut reference_reference =
             BitVec::repeat(false, reference_kmer_count * reference_kmer_count);
